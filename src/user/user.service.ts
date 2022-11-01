@@ -1,18 +1,19 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { ForbiddenException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from 'src/interfaces/user.interface';
-import { RegisterDTO } from './DTO/register.dto';
 
 import * as bcrypt from 'bcrypt';
-import { LoginDTO } from 'src/auth/login.dto';
+import { AuthDTO } from 'src/auth/auth.dto';
 import { Payload } from 'src/interfaces/payload.interface';
 
 @Injectable()
 export class UserService {
   constructor(@InjectModel('User') private userModel: Model<User>) {}
-
-  async create(RegisterDTO: RegisterDTO) {
+  //register
+  async create(RegisterDTO: AuthDTO) {
+    try{
+    console.log(RegisterDTO);   
     const { email } = RegisterDTO;
     const user = await this.userModel.findOne({ email });
     if (user) {
@@ -21,15 +22,20 @@ export class UserService {
     const createdUser = new this.userModel(RegisterDTO);
     await createdUser.save();
     return this.sanitizeUser(createdUser);
+  }catch(err){
+    throw new ForbiddenException(err.message);
+  }
   }
 
   // check if the user exists or not in the database
-  async findByLogin(UserDTO: LoginDTO) {
+  async findByLogin(UserDTO: AuthDTO) {
     const { email, password } = UserDTO;
+    //find user
     const user = await this.userModel.findOne({ email });
     if (!user) {
       throw new HttpException('user doesnt exists', HttpStatus.BAD_REQUEST);
     }
+    //compare password
     if (await bcrypt.compare(password, user.password)) {
       return this.sanitizeUser(user);
     } else {

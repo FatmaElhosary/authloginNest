@@ -1,8 +1,9 @@
+import { RegisterDTO } from './../../dist/user/register.dto.d';
 import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
-import { RegisterDTO } from 'src/user/DTO/register.dto';
+
 import { UserService } from '../user/user.service';
 import { AuthService } from './auth.service';
-import { LoginDTO } from './login.dto';
+import { AuthDTO } from './auth.dto';
 import { AuthGuard } from '@nestjs/passport/dist/auth.guard';
 
 @Controller('auth')
@@ -11,7 +12,17 @@ export class AuthController {
     private userService: UserService,
     private authService: AuthService,
   ) {}
-
+  @Post('register')
+  register(@Body() registerDTO: AuthDTO) {
+    console.log(registerDTO);
+    
+    return this.userService.create(registerDTO);
+  }
+  @Post('login')
+  login(@Body() userDTO: AuthDTO) {
+   // console.log(userDTO);
+    return this.authService.login(userDTO);
+  }
   @Get('/onlyauth')
   @UseGuards(AuthGuard('jwt'))
   async hiddenInformation() {
@@ -23,22 +34,5 @@ export class AuthController {
     return 'this can be seen by anyone';
   }
 
-  @Post('register')
-  async register(@Body() RegisterDTO: RegisterDTO) {
-    const user = await this.userService.create(RegisterDTO);
-    const payload = {
-      email: user.email,
-    };
-    const token = await this.authService.signPayload(payload);
-    return { user, token };
-  }
-  @Post('login')
-  async login(@Body() userDTO: LoginDTO) {
-    const user = await this.userService.findByLogin(userDTO);
-    const payload = {
-      email: user.email,
-    };
-    const token = await this.authService.signPayload(payload);
-    return { user, token };
-  }
+
 }
