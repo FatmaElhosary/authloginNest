@@ -19,9 +19,12 @@ export class User{
   email:string;
   @Prop()
   password:string;
+  @Prop()
+  products:[]
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);///mongoose.HookNextFunction
+///save hashed password ... fire before save
 UserSchema.pre('save', async function(next: any) {
     try {
       if (!this.isModified('password')) {

@@ -1,10 +1,16 @@
-import { ForbiddenException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Body,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from 'src/interfaces/user.interface';
 
 import * as bcrypt from 'bcrypt';
-import { AuthDTO } from 'src/auth/auth.dto';
+import { AuthDTO } from 'src/auth/dto/auth.dto';
 import { Payload } from 'src/interfaces/payload.interface';
 
 @Injectable()
@@ -12,21 +18,28 @@ export class UserService {
   constructor(@InjectModel('User') private userModel: Model<User>) {}
   //register
   async create(RegisterDTO: AuthDTO) {
-    try{
-    console.log(RegisterDTO);   
-    const { email } = RegisterDTO;
-    const user = await this.userModel.findOne({ email });
-    if (user) {
-      throw new HttpException('user already exists', HttpStatus.BAD_REQUEST);
+    try {
+      console.log(RegisterDTO);
+      const { email } = RegisterDTO;
+      const user = await this.userModel.findOne({ email });
+      if (user) {
+        throw new HttpException('user already exists', HttpStatus.BAD_REQUEST);
+      }
+      const createdUser = new this.userModel(RegisterDTO);
+      await createdUser.save();
+      return this.sanitizeUser(createdUser);
+    } catch (err) {
+      throw new ForbiddenException(err.message);
     }
-    const createdUser = new this.userModel(RegisterDTO);
-    await createdUser.save();
-    return this.sanitizeUser(createdUser);
-  }catch(err){
-    throw new ForbiddenException(err.message);
   }
+  ////find user by id
+  async findUser(@Body() email: { email: string }) {
+    const user = await this.userModel.findOne(email);
+    if (!user) {
+      throw new HttpException('user doesnt exists', HttpStatus.BAD_REQUEST);
+    }
+    return this.sanitizeUser(user);
   }
-
   // check if the user exists or not in the database
   async findByLogin(UserDTO: AuthDTO) {
     const { email, password } = UserDTO;
@@ -51,6 +64,7 @@ export class UserService {
   //findByPayload that checks if the user exists or not from his email
   async findByPayload(payload: Payload) {
     const { email } = payload;
-    return await this.userModel.findOne({ email });
+    const user = await this.userModel.findOne({ email });
+    return this.sanitizeUser(user);
   }
 }

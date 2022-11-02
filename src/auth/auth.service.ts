@@ -1,16 +1,20 @@
+import { ConfigService } from '@nestjs/config';
 import { Injectable, Body, ForbiddenException } from '@nestjs/common';
-import { sign } from 'jsonwebtoken';
 import { Payload } from 'src/interfaces/payload.interface';
 import { UserService } from '../user/user.service';
-import { AuthDTO } from './auth.dto';
+import { AuthDTO } from './dto/auth.dto';
+import { sign } from 'jsonwebtoken';
 
 @Injectable()
 export class AuthService {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private config: ConfigService,
+  ) {}
 
   async login(@Body() userDTO: AuthDTO) {
     try {
-        //find user in DB and compare password
+      //find user in DB and compare password
       const user = await this.userService.findByLogin(userDTO);
       const payload = {
         email: user.email,
@@ -18,9 +22,11 @@ export class AuthService {
       const token = await this.signPayload(payload);
       return { user, token };
     } catch (err) {
-        throw new ForbiddenException(err.message);
+      throw new ForbiddenException(err.message);
     }
   }
+
+  ////create user token
   async signPayload(payload: Payload) {
     return sign(payload, process.env.SECRET_KEY, { expiresIn: '30d' });
   }

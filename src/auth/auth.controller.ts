@@ -1,9 +1,7 @@
-import { RegisterDTO } from './../../dist/user/register.dto.d';
 import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
-
 import { UserService } from '../user/user.service';
 import { AuthService } from './auth.service';
-import { AuthDTO } from './auth.dto';
+import { AuthDTO } from './dto/auth.dto';
 import { AuthGuard } from '@nestjs/passport/dist/auth.guard';
 
 @Controller('auth')
@@ -15,12 +13,12 @@ export class AuthController {
   @Post('register')
   register(@Body() registerDTO: AuthDTO) {
     console.log(registerDTO);
-    
+
     return this.userService.create(registerDTO);
   }
   @Post('login')
   login(@Body() userDTO: AuthDTO) {
-   // console.log(userDTO);
+    // console.log(userDTO);
     return this.authService.login(userDTO);
   }
   @Get('/onlyauth')
@@ -33,6 +31,4 @@ export class AuthController {
   async publicInformation() {
     return 'this can be seen by anyone';
   }
-
-
 }
