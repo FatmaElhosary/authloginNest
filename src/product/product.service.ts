@@ -1,5 +1,5 @@
 import { Model } from 'mongoose';
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductDocument, Product } from '../schemas/product.schema';
@@ -17,22 +17,26 @@ export class ProductService {
     createProductDto: CreateProductDto,
   ): Promise<Product> {
     console.log(createProductDto);
-    const newProduct = await this.productModel.create(
-    createProductDto,
-    );
-   
+    const newProduct = await this.productModel.create({
+      userId,
+      ...createProductDto,
+    });
 
     return newProduct.save();
   }
 
   async findAll() {
-    const products=await this.productModel.find().exec();
+    const products = await this.productModel.find().exec();
     return products;
   }
 
- /*  findOne(id: number) {
-    return `This action returns a #${id} product`;
-  } */
+  async findOne(id: string) {
+    const product = await this.productModel.findOne({ _id: id });
+    if (!product) {
+      throw new HttpException('user doesnt exists', HttpStatus.BAD_REQUEST);
+    }
+    return product;
+  }
 
   async update(id: string, createProductDto: CreateProductDto) {
     const updateProduct = await this.productModel.findByIdAndUpdate(
@@ -45,7 +49,7 @@ export class ProductService {
 
   async remove(id: string): Promise<Product> {
     const deleteProduct = await this.productModel.findOneAndRemove({
-     id
+      id,
     });
     return deleteProduct;
   }

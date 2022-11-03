@@ -31,6 +31,10 @@ export class AuthService {
     return sign(payload, process.env.SECRET_KEY, { expiresIn: '30d' });
   }
   async validateUser(payload: Payload) {
-    return await this.userService.findByPayload(payload);
+    const user= await this.userService.findByPayload(payload) ;
+    if (!user){
+      throw new ForbiddenException('user not found');
+    }
+    return user;
   }
 }

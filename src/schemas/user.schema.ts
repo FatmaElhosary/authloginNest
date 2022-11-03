@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { Prop, Schema,SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { IsEmail ,IsNotEmpty} from 'class-validator';
+import {Role} from '../auth/enums/roles.enum';
 
 
 /* export const UserSchema=new mongoose.Schema({
@@ -19,6 +20,8 @@ export class User{
   email:string;
   @Prop()
   password:string;
+  @Prop()
+  roles:Role[]
   @Prop()
   products:[]
 }

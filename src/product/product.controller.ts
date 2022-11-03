@@ -3,13 +3,15 @@ import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { JwtGaurd } from '../auth/guard/jwt.guard';
+import { AuthGuard } from '@nestjs/passport/dist/auth.guard';
 
 @Controller('products')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
-@UseGuards(JwtGaurd)
+
+  @UseGuards(JwtGaurd)
   @Post('/add')
-  create(@Request() req,@Body() createProductDto: CreateProductDto) {
+  create(@Request() req,@Body() createProductDto:CreateProductDto) {
     const userId=req.user._id;
     return this.productService.create(userId,createProductDto);
   }
@@ -19,10 +21,10 @@ export class ProductController {
     return this.productService.findAll();
   }
 
- /*  @Get(':id')
+  @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.productService.findOne(+id);
-  } */
+    return this.productService.findOne(id);
+  } 
 
   @Patch('/:id')
   update(@Param('id') id: string, @Body() updateProductDto: CreateProductDto) {
